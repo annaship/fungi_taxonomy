@@ -11,14 +11,6 @@
 # Please read the COPYING file.
 # ver 2 2013 Jul 19 - convert taxonomy table
 
-# import os
-# from stat import * # ST_SIZE etc
-# import sys
-# import shutil
-# import types
-# from time import sleep
-# 
-# 
 import argparse
 # "taxonomy_id","taxonomy"
 # 4396,"Eukarya;Fungi"
@@ -36,6 +28,7 @@ def uniq_array(arr):
 def process(args):
     tax_infile = args.tax_infile
     taxout_fh  = open(args.tax_outfile,'w')
+    new_taxonomy = []
     
     # TAXONOMY FILE
     for line in open(tax_infile):
@@ -52,10 +45,13 @@ def process(args):
         split_tax = id_tax[1].strip('"').split(';')
         # print "id = %s, split_tax = %s" % (id_tax, split_tax)
         # print "id_tax = %s" % (id_tax)
-        # print "split_tax = %s" % (split_tax)
+        # print "\n==========\nsplit_tax = %s" % (split_tax)
+        
         unique_split_tax = uniq_array(split_tax)
+        print "=========="
         print "unique_split_tax = %s" % (unique_split_tax)
         arr_size = len(unique_split_tax)
+        
         
         # domain         = 'Eukarya'
         new_tax_line["kingdom_phylum"] = ""
@@ -71,17 +67,36 @@ def process(args):
                 new_tax_line["kingdom_phylum"] = "Fungi" + "_" + taxon
             if taxon.endswith("mycetes"):
                 new_tax_line["class"] = taxon
-            if taxon.endswith("ales"):
+            if taxon.endswith("ales") and taxon.find(" ") < 0:
                 new_tax_line["order"] = taxon
             if taxon.endswith("aceae"):
                 new_tax_line["family"] = taxon
         if arr_size == int(2) or (arr_size == int(3) and unique_split_tax[2] == ''):
             print "HERE: %s" % unique_split_tax
             new_tax_line["kingdom_phylum"] = "Fungi"
-        if arr_size >= 6:
-            new_tax_line["family"] = unique_split_tax[6]
-        if arr_size >= 7:
+        if arr_size > 6:
+            new_tax_line["genus"] = unique_split_tax[6]
+        if arr_size > 7:
             new_tax_line["species"] = unique_split_tax[7]
+        if (unique_split_tax[-1].find(" ") > 0 and split_tax[-1].split(" ")[1].islower()):
+            species_list = split_tax[-1].split(" ")
+            new_tax_line["genus"]   = species_list[0]
+            new_tax_line["species"] = species_list[1]
+            arr_size += 1
+            
+        print "-----------"
+        print new_tax_line.values()
+        print set(new_tax_line.values())
+        len_of_new_tax = len(set(new_tax_line.values()))
+        print "arr_size = %s, len_of_new_tax = %s" % (arr_size, len_of_new_tax)
+        if (int(arr_size) - int(len_of_new_tax) != 1):
+            print "ATTENTION"
+        # else:
+        #     print "URA"        
+            # unique_split_tax = ['Eukarya', 'Fungi', 'Ascomycota', 'Pneumocystis carinii']
+            # kingdom_phylum = Fungi_Ascomycota; class = ; order = ; family = , genus = Pneumocystis, species = carinii
+            
+        new_taxonomy.append(new_tax_line)
             
         # # k__Fungi;p__Basidiomycota;c__Agaricomycetes;o__Thelephorales;f__Thelephoraceae;g__Thelephora;s__Thelephora_terrestris
         # if arr_size > 2:
@@ -99,7 +114,8 @@ def process(args):
         # strain         =
         
         # print "kingdom_phylum = %s; new_class = %s; new_orderx = %s; new_family = %s" % (kingdom_phylum, new_class, new_orderx, new_family)
-        print "kingdom_phylum = %s; class = %s; order = %s; family = %s, species = %s" % (new_tax_line["kingdom_phylum"], new_tax_line["class"], new_tax_line["order"], new_tax_line["family"], new_tax_line["species"])
+        print "kingdom_phylum = %s; class = %s; order = %s; family = %s, genus = %s, species = %s" % (new_tax_line["kingdom_phylum"], new_tax_line["class"], new_tax_line["order"], new_tax_line["family"], new_tax_line["genus"], new_tax_line["species"])
+    # print new_taxonomy
          # todo: split species and unique again
         
         # for i in tax_items:
