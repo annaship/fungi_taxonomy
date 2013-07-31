@@ -74,38 +74,50 @@ def make_taxa_dict(tax_infile):
         taxonomy[id_tax] = tax_line
     return taxonomy
     
-def remove_empty(tax_line, name):
-    if tax_line[name] in ("unculturedfungus", "Fungi", "unidentified"):
-        # print "HERE: name = %s, tax_line[name] = %s" % (name, tax_line[name])
+def remove_empty(tax_line, name, bad_value):
+    if tax_line[name] in bad_value:
         tax_line[name] = ''
     return tax_line[name]
     
-def remove_empty_from_end(ordered_names, old_taxonomy):
+def remove_empty_from_end(ordered_names, old_taxonomy, bad_value):
     taxonomy_with_wholes = {}
     for tax_id, tax_line in old_taxonomy.items():
         for name in reversed(ordered_names):
-            res_taxa = remove_empty(tax_line, name)
+            res_taxa = remove_empty(tax_line, name, bad_value)
             if res_taxa != '':
                 break
         # print tax_line
         taxonomy_with_wholes[tax_id] = tax_line
     return taxonomy_with_wholes
     
+def make_kingdom_phylum(tax_line, bad_value):
+    tax_line["kingdom_phylum"] = tax_line["kingdom"]
+    if (tax_line["phylum"] != "") and (tax_line["phylum"] not in bad_value):
+        tax_line["kingdom_phylum"] = tax_line["kingdom"] + "_" + tax_line["phylum"]
+    return tax_line
     
-def make_kingdom_phylum(tax_line):
-    return (tax_line["kingdom"] + "_" + tax_line["phylum"])
-    
-def separate_binomial_name(species):
-    pass
+def separate_binomial_name(tax_line):
+    if (tax_line["species"].find("_") > 0):
+        species = tax_line["species"].split("_")
+        genus   = tax_line["genus"]
+        if (species[0] == genus):
+            tax_line["species"] = species[1]
+    return tax_line
     
 def process(args):
     tax_infile    = args.tax_infile
     taxout_fh     = open(args.tax_outfile,'w')
     ordered_names = "phylum", "class", "order", "family", "genus", "species"
+    bad_value     = "unculturedfungus", "Fungi", "unidentified", "sp"
     old_taxonomy  = make_taxa_dict(tax_infile)
-    taxonomy_with_wholes = remove_empty_from_end(ordered_names, old_taxonomy)
-    
-    print taxonomy_with_wholes
+    separated_species_taxonomy = {}
+    clean_taxonomy = {}
+    for tax_id, tax_line in old_taxonomy.items():
+        separated_species_taxonomy[tax_id] = separate_binomial_name(tax_line)
+    taxonomy_with_wholes = remove_empty_from_end(ordered_names, separated_species_taxonomy, bad_value)
+    for tax_id, tax_line in taxonomy_with_wholes.items():
+        clean_taxonomy[tax_id] = make_kingdom_phylum(tax_line, bad_value)
+        print clean_taxonomy[tax_id]
 
 
  
