@@ -36,16 +36,9 @@ def make_taxa_dict(tax_infile):
         tax_line = {}
         
         line = line.strip()
-        # print line
-        # if not line:
-        #     continue
         tax_line_split = line.split()
         split_tax = tax_line_split[1].split(';')
         id_tax    = tax_line_split[0]
-        # print "\n===========\nid_tax = %s, split_tax = %s" % (id_tax, split_tax)
-        
-        # domain         = 'Eukarya'
-        # tax_line["kingdom_phylum"] = ""
         tax_line["class"]          = ""
         tax_line["order"]          = ""
         tax_line["family"]         = ""
@@ -55,20 +48,18 @@ def make_taxa_dict(tax_infile):
             # http://species.wikimedia.org/wiki/Fungi
             # Phyla: Ascomycota - Basidiomycota - Blastocladiomycota - Chytridiomycota - Glomeromycota - Microsporidia - Neocallimastigomycota - Zygomycota - Fungi incertae sedis
             # FJ820581        k__Fungi;p__Basidiomycota;c__Agaricomycetes;o__Thelephorales;f__Thelephoraceae;g__Thelephora;s__unculturedfungus
-            # print "taxon = %s" % taxon
-            
-            if taxon.startswith("k__"):
-                tax_line["kingdom"] = "Fungi"
+            tax_line["kingdom_phylum"] = ""
+            tax_line["kingdom"]        = "Fungi"
             if taxon.startswith("p__"):
-                tax_line["phylum"] = taxon.split("__")[1]                
+                tax_line["phylum"]  = taxon.split("__")[1]                
             if taxon.startswith("c__"):
-                tax_line["class"] = taxon.split("__")[1]
+                tax_line["class"]   = taxon.split("__")[1]
             if taxon.startswith("o__"):
-                tax_line["order"] = taxon.split("__")[1]
+                tax_line["order"]   = taxon.split("__")[1]
             if taxon.startswith("f__"):
-                tax_line["family"] = taxon.split("__")[1]
+                tax_line["family"]  = taxon.split("__")[1]
             if taxon.startswith("g__"):
-                tax_line["genus"] = taxon.split("__")[1]
+                tax_line["genus"]   = taxon.split("__")[1]
             if taxon.startswith("s__"):
                 tax_line["species"] = taxon.split("__")[1]
         taxonomy[id_tax] = tax_line
@@ -81,18 +72,18 @@ def remove_empty(tax_line, name, bad_value):
     
 def remove_empty_from_end(ordered_names, old_taxonomy, bad_value):
     taxonomy_with_wholes = {}
+    ordered_names_from_phylum = ordered_names[2:] #no kingdom and kingdom_phylum
     for tax_id, tax_line in old_taxonomy.items():
         for name in reversed(ordered_names):
             res_taxa = remove_empty(tax_line, name, bad_value)
             if res_taxa != '':
                 break
-        # print tax_line
         taxonomy_with_wholes[tax_id] = tax_line
     return taxonomy_with_wholes
     
 def make_kingdom_phylum(tax_line, bad_value):
-    tax_line["kingdom_phylum"] = tax_line["kingdom"]
-    if (tax_line["phylum"] != "") and (tax_line["phylum"] not in bad_value):
+    tax_line["kingdom_phylum"] = "Fungi"
+    if (tax_line["phylum"] != "") and (tax_line["phylum"] not in bad_value[1:]):
         tax_line["kingdom_phylum"] = tax_line["kingdom"] + "_" + tax_line["phylum"]
     return tax_line
     
@@ -104,20 +95,31 @@ def separate_binomial_name(tax_line):
             tax_line["species"] = species[1]
     return tax_line
     
+def make_new_taxonomy(tax_line_w_k_ph, ordered_names):
+    new_line = []
+    new_line = "Eukarya"
+    for name in ordered_names[1:]:
+        if tax_line_w_k_ph[name] != "":
+            new_line += (";" + tax_line_w_k_ph[name])
+    return new_line
+        
+    
 def process(args):
+    
     tax_infile    = args.tax_infile
     taxout_fh     = open(args.tax_outfile,'w')
-    ordered_names = "phylum", "class", "order", "family", "genus", "species"
-    bad_value     = "unculturedfungus", "Fungi", "unidentified", "sp"
+    ordered_names = "kingdom", "kingdom_phylum", "phylum", "class", "order", "family", "genus", "species"
+    bad_value     = "Fungi", "unculturedfungus", "unidentified", "sp"
     old_taxonomy  = make_taxa_dict(tax_infile)
     separated_species_taxonomy = {}
     clean_taxonomy = {}
     for tax_id, tax_line in old_taxonomy.items():
         separated_species_taxonomy[tax_id] = separate_binomial_name(tax_line)
     taxonomy_with_wholes = remove_empty_from_end(ordered_names, separated_species_taxonomy, bad_value)
-    for tax_id, tax_line in taxonomy_with_wholes.items():
-        clean_taxonomy[tax_id] = make_kingdom_phylum(tax_line, bad_value)
-        print clean_taxonomy[tax_id]
+    for tax_id, tax_line in taxonomy_with_wholes.items():    
+        tax_line_w_k_ph = make_kingdom_phylum(tax_line, bad_value)
+        clean_taxonomy[tax_id] = make_new_taxonomy(tax_line_w_k_ph, ordered_names)
+        taxout_fh.write(clean_taxonomy[tax_id] + "\n")
 
 
  
