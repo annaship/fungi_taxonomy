@@ -1,0 +1,1 @@
+/Users/ashipunova/BPC/today/fungi_taxonomy/parse_fa.py

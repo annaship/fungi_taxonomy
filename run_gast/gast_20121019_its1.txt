@@ -1,0 +1,146 @@
+/xraid2-2/g454/gast$ mysql -h newbpcdb2.mbl.edu env454 -e "SELECT COUNT(distinct read_id) FROM gast_20121019_its1"
++-------------------------+
+| COUNT(distinct read_id) |
++-------------------------+
+|                    9396 |
++-------------------------+
+/xraid2-2/g454/gast$ cat /xraid2-2/g454/gast/20121019_its1/gast_20121019_its1.*.txt | cut -f1 | sort -u | wc -l
+9396
+/xraid2-2/g454/gast$ cd $g454/gast/20121019_its1
+/xraid2-2/g454/gast/20121019_its1$ gast_cleanup -r 20121019 -reg its1
+Exploding sequences in gast_20121019_its1
+Inserting non-BLAST hits into gast_20121019_its1
+Inserting records into gast_concat
+Inserting records into gast
+/xraid2-2/g454/gast/20121019_its1$ gast_check 20121019 its1
++--------+
+| no_hit |
++--------+
+|   1060 |
++--------+
++---------------+
+| total_trimseq |
++---------------+
+|         49100 |
++---------------+
++--------------------------+
+| total_gast_20121019_its1 |
++--------------------------+
+|                    49100 |
++--------------------------+
++--------------------+
+| total_gast_trimseq |
++--------------------+
+|              49100 |
++--------------------+
++---------------------------+
+| total_gast_concat_trimseq |
++---------------------------+
+|                     49100 |
++---------------------------+
+/xraid2-2/g454/gast/20121019_its1$ clusterize gast2tax -g gast_20121019_its1 -reg its1 -ref refhvr_its1
+Your job 786476 ("gast2tax") has been submitted
+/xraid2-2/g454/gast/20121019_its1$ qstat -u ashipunova
+job-ID  prior   name       user         state submit/start at     queue                          slots ja-task-ID 
+-----------------------------------------------------------------------------------------------------------------
+ 786476 0.55500 gast2tax   ashipunova   r     07/22/2013 15:37:47 all.q@grendel-03.bpcservers.pr     1        
+/xraid2-2/g454/gast/20121019_its1$ qstat -u ashipunova
+job-ID  prior   name       user         state submit/start at     queue                          slots ja-task-ID 
+-----------------------------------------------------------------------------------------------------------------
+ 786476 0.55500 gast2tax   ashipunova   r     07/22/2013 15:37:47 all.q@grendel-03.bpcservers.pr     1        
+/xraid2-2/g454/gast/20121019_its1$ qstat -u ashipunova
+/xraid2-2/g454/gast/20121019_its1$ mysql -h newbpcdb2.mbl.edu env454 -e "SELECT count(read_id) from tagtax
+> JOIN trimseq using(read_id)
+> JOIN run using(run_id)
+> join dna_region using(dna_region_id) 
+> WHERE run='20121019' and dna_region = 'its1'"
++----------------+
+| count(read_id) |
++----------------+
+|          49100 |
++----------------+
+/xraid2-2/g454/gast/20121019_its1$ mysql -h newbpcdb2.mbl.edu env454 -e "SELECT taxonomy, count(read_id) as count_all from tagtax JOIN taxonomy USING(taxonomy_id)
+> JOIN trimseq using(read_id)
+> JOIN run using(run_id)
+> join dna_region using(dna_region_id) 
+> WHERE run='20121019' and dna_region = 'its1' group by taxonomy"
++---------------------------------------------------------------------------------------------------------------------------+-----------+
+| taxonomy                                                                                                                  | count_all |
++---------------------------------------------------------------------------------------------------------------------------+-----------+
+| Eukarya                                                                                                                   |      1760 |
+| Eukarya;Fungi_Ascomycota                                                                                                  |        26 |
+| Eukarya;Fungi_Ascomycota;Class_NA;Order_NA;Family_NA;Genus_NA;Ascomycota_sp_ARIZ_RTOak2_10                                |         4 |
+| Eukarya;Fungi_Ascomycota;Class_NA;Order_NA;Family_NA;Genus_NA;unculturedAscomycota                                        |        45 |
+| Eukarya;Fungi_Ascomycota;Dothideomycetes;Dothideales;Dothioraceae;Aureobasidium;pullulans                                 |         3 |
+| Eukarya;Fungi_Ascomycota;Dothideomycetes;Pleosporales;Family_NA;Phoma                                                     |         2 |
+| Eukarya;Fungi_Ascomycota;Dothideomycetes;Pleosporales;Phaeosphaeriaceae;Phaeosphaeriopsis;sp_TMS_2011                     |         8 |
+| Eukarya;Fungi_Ascomycota;Eurotiomycetes;Chaetothyriales;Herpotrichiellaceae;Exophiala;dermatitidis                        |         8 |
+| Eukarya;Fungi_Ascomycota;Eurotiomycetes;Eurotiales;Trichocomaceae;Aspergillus                                             |         1 |
+| Eukarya;Fungi_Ascomycota;Eurotiomycetes;Eurotiales;Trichocomaceae;Aspergillus;flavus                                      |         1 |
+| Eukarya;Fungi_Ascomycota;Eurotiomycetes;Eurotiales;Trichocomaceae;Aspergillus;fumigatus                                   |      2994 |
+| Eukarya;Fungi_Ascomycota;Eurotiomycetes;Eurotiales;Trichocomaceae;Aspergillus;niger                                       |         1 |
+| Eukarya;Fungi_Ascomycota;Eurotiomycetes;Eurotiales;Trichocomaceae;Aspergillus;penicillioides                              |         1 |
+| Eukarya;Fungi_Ascomycota;Eurotiomycetes;Eurotiales;Trichocomaceae;Aspergillus;restrictus                                  |         5 |
+| Eukarya;Fungi_Ascomycota;Eurotiomycetes;Eurotiales;Trichocomaceae;Aspergillus;unguis                                      |        29 |
+| Eukarya;Fungi_Ascomycota;Eurotiomycetes;Eurotiales;Trichocomaceae;Neosartorya;hiratsukae                                  |         2 |
+| Eukarya;Fungi_Ascomycota;Eurotiomycetes;Eurotiales;Trichocomaceae;Penicillium                                             |        18 |
+| Eukarya;Fungi_Ascomycota;Eurotiomycetes;Eurotiales;Trichocomaceae;Penicillium;citreonigrum                                |         4 |
+| Eukarya;Fungi_Ascomycota;Eurotiomycetes;Eurotiales;Trichocomaceae;Penicillium;corylophilum                                |        15 |
+| Eukarya;Fungi_Ascomycota;Leotiomycetes;Helotiales;Dermateaceae;Mollisia;incrustata                                        |         1 |
+| Eukarya;Fungi_Ascomycota;Saccharomycetes;Saccharomycetales;Family_NA;Candida                                              |      3006 |
+| Eukarya;Fungi_Ascomycota;Saccharomycetes;Saccharomycetales;Family_NA;Candida;africana                                     |        80 |
+| Eukarya;Fungi_Ascomycota;Saccharomycetes;Saccharomycetales;Family_NA;Candida;albicans                                     |      8298 |
+| Eukarya;Fungi_Ascomycota;Saccharomycetes;Saccharomycetales;Family_NA;Candida;dubliniensis                                 |      1730 |
+| Eukarya;Fungi_Ascomycota;Saccharomycetes;Saccharomycetales;Family_NA;Candida;intermedia                                   |         5 |
+| Eukarya;Fungi_Ascomycota;Saccharomycetes;Saccharomycetales;Family_NA;Candida;parapsilosis                                 |       310 |
+| Eukarya;Fungi_Ascomycota;Saccharomycetes;Saccharomycetales;Family_NA;Candida;sp_NY7122                                    |         1 |
+| Eukarya;Fungi_Ascomycota;Saccharomycetes;Saccharomycetales;Pichiaceae;Hyphopichia;pseudoburtonii                          |        77 |
+| Eukarya;Fungi_Ascomycota;Saccharomycetes;Saccharomycetales;Saccharomycetaceae;Debaryomyces;hansenii                       |         1 |
+| Eukarya;Fungi_Ascomycota;Saccharomycetes;Saccharomycetales;Saccharomycetaceae;Saccharomyces;cerevisiae                    |        28 |
+| Eukarya;Fungi_Ascomycota;Schizosaccharomycetes;Schizosaccharomycetales;Schizosaccharomycetaceae;Schizosaccharomyces;pombe |      6575 |
+| Eukarya;Fungi_Ascomycota;Sordariomycetes;Hypocreales;Clavicipitaceae;Claviceps;purpurea                                   |         1 |
+| Eukarya;Fungi_Ascomycota;Sordariomycetes;Hypocreales;Hypocreaceae;Trichoderma                                             |         6 |
+| Eukarya;Fungi_Basidiomycota;Agaricomycetes;Agaricales;Lyophyllaceae;Termitomyces;unculturedTermitomyces                   |        14 |
+| Eukarya;Fungi_Basidiomycota;Agaricomycetes;Agaricales;Marasmiaceae;Marasmius;aukubae                                      |         4 |
+| Eukarya;Fungi_Basidiomycota;Agaricomycetes;Agaricales;Schizophyllaceae;Porotheleum;Species_NA                             |         1 |
+| Eukarya;Fungi_Basidiomycota;Agaricomycetes;Hymenochaetales;Schizoporaceae;Hyphodontia;aspera                              |         3 |
+| Eukarya;Fungi_Basidiomycota;Agaricomycetes;Polyporales;Family_NA;Genus_NA;fungal_sp_212g                                  |         1 |
+| Eukarya;Fungi_Basidiomycota;Agaricomycetes;Polyporales;Family_NA;Genus_NA;Polyporales_sp_4_SR_2012                        |         3 |
+| Eukarya;Fungi_Basidiomycota;Agaricomycetes;Polyporales;Ganodermataceae;Genus_NA;unculturedGanoderma                       |         6 |
+| Eukarya;Fungi_Basidiomycota;Agaricomycetes;Polyporales;Hyphodermataceae;Hyphoderma;puberum                                |         2 |
+| Eukarya;Fungi_Basidiomycota;Agaricomycetes;Polyporales;Meruliaceae;Mycoacia;nothofagi                                     |         1 |
+| Eukarya;Fungi_Basidiomycota;Agaricomycetes;Polyporales;Polyporaceae;Daedaleopsis;confragosa                               |         5 |
+| Eukarya;Fungi_Basidiomycota;Agaricomycetes;Russulales;Echinodontiaceae;Echinodontium;taxodii                              |         8 |
+| Eukarya;Fungi_Basidiomycota;Class_NA                                                                                      |         1 |
+| Eukarya;Fungi_Basidiomycota;Class_NA;Malasseziales;Family_NA;Genus_NA                                                     |         1 |
+| Eukarya;Fungi_Basidiomycota;Class_NA;Malasseziales;Family_NA;Genus_NA;unculturedMalasseziales                             |       289 |
+| Eukarya;Fungi_Basidiomycota;Class_NA;Malasseziales;Family_NA;Malassezia;furfur                                            |        16 |
+| Eukarya;Fungi_Basidiomycota;Class_NA;Malasseziales;Family_NA;Malassezia;globosa                                           |         9 |
+| Eukarya;Fungi_Basidiomycota;Class_NA;Malasseziales;Family_NA;Malassezia;sp_LCP_2008a                                      |      1861 |
+| Eukarya;Fungi_Basidiomycota;Class_NA;Order_NA;Family_NA;Genus_NA;Basidiomycota_sp_D3                                      |        65 |
+| Eukarya;Fungi_Basidiomycota;Class_NA;Order_NA;Family_NA;Genus_NA;leaf_litter_basidiomycete_sp_13/2_48                     |         3 |
+| Eukarya;Fungi_Basidiomycota;Class_NA;Order_NA;Family_NA;Genus_NA;unculturedBasidiomycota                                  |      1440 |
+| Eukarya;Fungi_Basidiomycota;Exobasidiomycetes;Order_NA;Family_NA;Genus_NA;Exobasidiomycetidae_sp_IBL_03150                |         2 |
+| Eukarya;Fungi_Basidiomycota;Microbotryomycetes;Sporidiobolales;Family_NA;Rhodotorula                                      |        14 |
+| Eukarya;Fungi_Basidiomycota;Microbotryomycetes;Sporidiobolales;Family_NA;Rhodotorula;mucilaginosa                         |        26 |
+| Eukarya;Fungi_Basidiomycota;Microbotryomycetes;Sporidiobolales;Family_NA;Rhodotorula;sp_LH23                              |         3 |
+| Eukarya;Fungi_Basidiomycota;Microbotryomycetes;Sporidiobolales;Family_NA;Sporobolomyces;sp_Vega543                        |         1 |
+| Eukarya;Fungi_Basidiomycota;Pucciniomycetes;Pucciniales;Pucciniaceae;Puccinia;coronata_f_sp_avenae                        |         1 |
+| Eukarya;Fungi_Basidiomycota;Tremellomycetes                                                                               |         1 |
+| Eukarya;Fungi_Basidiomycota;Tremellomycetes;Order_NA;Family_NA;Genus_NA;unculturedTremellomycetes                         |         6 |
+| Eukarya;Fungi_Basidiomycota;Tremellomycetes;Tremellales;Family_NA;Genus_NA;unculturedTremellales                          |         1 |
+| Eukarya;Fungi_Basidiomycota;Tremellomycetes;Tremellales;Tremellaceae;Dioszegia;crocea                                     |        10 |
+| Eukarya;Fungi_Basidiomycota;Tremellomycetes;Tremellales;Trichosporonaceae;Trichosporon;loubieri                           |      6227 |
+| Eukarya;Fungi_Basidiomycota;Wallemiomycetes;Wallemiales;Wallemiaceae;Wallemia;sebi                                        |      1735 |
+| Eukarya;Fungi_Basidiomycota;Wallemiomycetes;Wallemiales;Wallemiaceae;Wallemia;sp_BF036                                    |         1 |
+| Eukarya;Fungi_NA;Class_NA;Order_NA;Family_NA;Genus_NA                                                                     |         6 |
+| Eukarya;Fungi_NA;Class_NA;Order_NA;Family_NA;Genus_NA;fungal_endophyte                                                    |         5 |
+| Eukarya;Fungi_NA;Class_NA;Order_NA;Family_NA;Genus_NA;fungal_endophyte_sp_M1_3121                                         |         9 |
+| Eukarya;Fungi_NA;Class_NA;Order_NA;Family_NA;Genus_NA;fungal_sp_TRN172                                                    |         5 |
+| Eukarya;Fungi_NA;Class_NA;Order_NA;Family_NA;Genus_NA;unculturedcompost_fungus                                            |         4 |
+| Eukarya;Fungi_NA;Class_NA;Order_NA;Family_NA;Genus_NA;unculturedendophytic_fungus                                         |        25 |
+| Eukarya;Fungi_NA;Class_NA;Order_NA;Family_NA;Genus_NA;unculturedfungus                                                    |     11177 |
+| Eukarya;Fungi_NA;Class_NA;Order_NA;Family_NA;Genus_NA;unculturedsoil_fungus                                               |         2 |
+| Unknown                                                                                                                   |      1060 |
++---------------------------------------------------------------------------------------------------------------------------+-----------+
+/xraid2-2/g454/gast/20121019_its1$ 
