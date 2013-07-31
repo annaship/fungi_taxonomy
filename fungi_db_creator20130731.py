@@ -30,206 +30,66 @@ def uniq_array(arr):
    return noDupes
    
 def make_taxa_dict(tax_infile):
+    taxonomy = {}
+    
     for line in open(tax_infile):
-        new_tax_line = {}
+        tax_line = {}
         
         line = line.strip()
         # print line
-        if not line:
-            continue
-        tax_line    = line.split()
-        split_tax = tax_line[1].split(';')
-        id_tax    = tax_line[0]
-        
-        unique_split_tax = uniq_array(split_tax)
-        arr_size = len(unique_split_tax)
-        
+        # if not line:
+        #     continue
+        tax_line_split = line.split()
+        split_tax = tax_line_split[1].split(';')
+        id_tax    = tax_line_split[0]
+        # print "\n===========\nid_tax = %s, split_tax = %s" % (id_tax, split_tax)
         
         # domain         = 'Eukarya'
-        new_tax_line["kingdom_phylum"] = ""
-        new_tax_line["class"]          = ""
-        new_tax_line["order"]          = ""
-        new_tax_line["family"]         = ""
-        new_tax_line["genus"]          = ""
-        new_tax_line["species"]        = ""
-        for taxon in unique_split_tax:
+        tax_line["kingdom_phylum"] = ""
+        tax_line["class"]          = ""
+        tax_line["order"]          = ""
+        tax_line["family"]         = ""
+        tax_line["genus"]          = ""
+        tax_line["species"]        = ""
+        for taxon in split_tax:
             # http://species.wikimedia.org/wiki/Fungi
             # Phyla: Ascomycota - Basidiomycota - Blastocladiomycota - Chytridiomycota - Glomeromycota - Microsporidia - Neocallimastigomycota - Zygomycota - Fungi incertae sedis
             # FJ820581        k__Fungi;p__Basidiomycota;c__Agaricomycetes;o__Thelephorales;f__Thelephoraceae;g__Thelephora;s__unculturedfungus
-            print "taxon = %s" % taxon
+            # print "taxon = %s" % taxon
             
             if taxon.startswith("k__"):
-                new_tax_line["kingdom"] = "Fungi"
+                tax_line["kingdom"] = "Fungi"
             if taxon.startswith("p__"):
-                new_tax_line["kingdom_phylum"] = new_tax_line["kingdom"] + "_" + taxon.split("__")[1]                
+                tax_line["phylum"] = taxon.split("__")[1]                
             if taxon.startswith("c__"):
-                new_tax_line["class"] = taxon.split("__")[1]
+                tax_line["class"] = taxon.split("__")[1]
             if taxon.startswith("o__"):
-                new_tax_line["order"] = taxon.split("__")[1]
+                tax_line["order"] = taxon.split("__")[1]
             if taxon.startswith("f__"):
-                new_tax_line["family"] = taxon.split("__")[1]
+                tax_line["family"] = taxon.split("__")[1]
             if taxon.startswith("g__"):
-                new_tax_line["genus"] = taxon.split("__")[1]
+                tax_line["genus"] = taxon.split("__")[1]
             if taxon.startswith("s__"):
-                new_tax_line["species"] = taxon.split("__")[1]
-        new_taxonomy.append(new_tax_line)
-        close(tax_infile)
-        return new_taxonomy
+                tax_line["species"] = taxon.split("__")[1]
+        taxonomy[id_tax] = tax_line
+    return taxonomy
+    
+def remove_empty_from_end(tax_line):
+    if tax_line["species"] in ("unculturedfungus", "Fungi", "unidentified"):
+        print "HERE: %s" % tax_line["species"]
+        tax_line["species"] = ''
+
+def make_kingdom_phylum(tax_line):
+    return (tax_line["kingdom"] + "_" + tax_line["phylum"])
 
 def process(args):
-    tax_infile = args.tax_infile
-    taxout_fh  = open(args.tax_outfile,'w')
-    new_taxonomy = []
-    
-    # TAXONOMY FILE
-    for line in open(tax_infile):
-        new_tax_line = {}
-        
-        line = line.strip()
-        # print line
-        if not line:
-            continue
-        print "\n==========\n"
-        tax_line    = line.split()
-        print "tax_line = %s, tax_line[0] = %s" % (tax_line, tax_line[0])
-        split_tax = tax_line[1].split(';')
-        id_tax    = tax_line[0]
-        print "id = %s, split_tax = %s" % (id_tax, split_tax)
-        # print "id_tax = %s" % (id_tax)
-        # print "\n==========\nsplit_tax = %s" % (split_tax)
-        
-        unique_split_tax = uniq_array(split_tax)
-        print "=========="
-        print "unique_split_tax = %s" % (unique_split_tax)
-        arr_size = len(unique_split_tax)
-        
-        
-        # domain         = 'Eukarya'
-        new_tax_line["kingdom_phylum"] = ""
-        new_tax_line["class"]          = ""
-        new_tax_line["order"]          = ""
-        new_tax_line["family"]         = ""
-        new_tax_line["genus"]          = ""
-        new_tax_line["species"]        = ""
-        for taxon in unique_split_tax:
-            # http://species.wikimedia.org/wiki/Fungi
-            # Phyla: Ascomycota - Basidiomycota - Blastocladiomycota - Chytridiomycota - Glomeromycota - Microsporidia - Neocallimastigomycota - Zygomycota - Fungi incertae sedis
-            # FJ820581        k__Fungi;p__Basidiomycota;c__Agaricomycetes;o__Thelephorales;f__Thelephoraceae;g__Thelephora;s__unculturedfungus
-            print "taxon = %s" % taxon
-            
-            if taxon.startswith("k__"):
-                new_tax_line["kingdom"] = "Fungi"
-            if taxon.startswith("p__"):
-                new_tax_line["kingdom_phylum"] = new_tax_line["kingdom"] + "_" + taxon.split("__")[1]                
-            if taxon.startswith("c__"):
-                new_tax_line["class"] = taxon.split("__")[1]
-
-                # and taxon.find(" ") < 0
-            if taxon.startswith("o__"):
-                new_tax_line["order"] = taxon.split("__")[1]
-
-                # and taxon.endswith("aceae")
-            if taxon.startswith("f__"):
-                new_tax_line["family"] = taxon.split("__")[1]
-            if taxon.startswith("g__"):
-                new_tax_line["genus"] = taxon.split("__")[1]
-            if taxon.startswith("s__"):
-                new_tax_line["species"] = taxon.split("__")[1]
-
-                # if taxon.startswith("k__unidentified"):
-                #     break
-        # 
-        # if arr_size == int(2) or (arr_size == int(3) and unique_split_tax[2] == ''):
-        #     print "HERE: %s" % unique_split_tax
-        #     new_tax_line["kingdom_phylum"] = "Fungi"
-        # if arr_size > 6:
-        #     new_tax_line["genus"] = unique_split_tax[6]
-        # if arr_size > 7:
-        #     new_tax_line["species"] = unique_split_tax[7]
-        # if (unique_split_tax[-1].find(" ") > 0 and split_tax[-1].split(" ")[1].islower()):
-        #     species_list = split_tax[-1].split(" ")
-        #     new_tax_line["genus"]   = species_list[0]
-        #     new_tax_line["species"] = species_list[1]
-        #     arr_size += 1
-            
-        print "-----------"
-        print new_tax_line.values()
-        # print set(new_tax_line.values())
-        # len_of_new_tax = len(set(new_tax_line.values()))
-        # print "arr_size = %s, len_of_new_tax = %s" % (arr_size, len_of_new_tax)
-        # if (int(arr_size) - int(len_of_new_tax) != 1):
-        #     print "ATTENTION"
-        # else:
-        #     print "URA"        
-            # unique_split_tax = ['Eukarya', 'Fungi', 'Ascomycota', 'Pneumocystis carinii']
-            # kingdom_phylum = Fungi_Ascomycota; class = ; order = ; family = , genus = Pneumocystis, species = carinii
-            
-        new_taxonomy.append(new_tax_line)
-            
-        # # k__Fungi;p__Basidiomycota;c__Agaricomycetes;o__Thelephorales;f__Thelephoraceae;g__Thelephora;s__Thelephora_terrestris
-        # if arr_size > 2:
-        #     if (unique_split_tax[1] == 'Fungi' and unique_split_tax[2] != ''):
-        #         kingdom_phylum = unique_split_tax[1] + "_" + unique_split_tax[2]            
-        # if arr_size > 3:
-        #     new_class  = unique_split_tax[3]
-        # if arr_size > 4:
-        #     new_orderx = unique_split_tax[4]
-        # if arr_size > 5:
-        #     new_family = unique_split_tax[5]
-        # family         =
-        # genus          =
-        # species        =
-        # strain         =
-        
-        # print "kingdom_phylum = %s; new_class = %s; new_orderx = %s; new_family = %s" % (kingdom_phylum, new_class, new_orderx, new_family)
-        print "kingdom_phylum = %s; class = %s; order = %s; family = %s, genus = %s, species = %s" % (new_tax_line["kingdom_phylum"], new_tax_line["class"], new_tax_line["order"], new_tax_line["family"], new_tax_line["genus"], new_tax_line["species"])
-    # print new_taxonomy
-         # todo: split species and unique again
-        
-        # for i in tax_items:
-        #     name = i.split('__')[1]
-        #     if i[0] == 'k':
-        #         pass
-        #     if i[0] == 'p':
-        #         if name=='unidentified' or name=='Incertae_sedis':
-        #             new_tax.append('Fungi_NA')
-        #         else:
-        #             new_tax.append('Fungi_'+name)
-        #     if i[0] == 'c':
-        #         if name=='unidentified' or name=='Incertae_sedis':
-        #             name='Class_NA'
-        #         new_tax.append(name)
-        #     if i[0] == 'o':
-        #         if name=='unidentified' or name=='Incertae_sedis':
-        #             name='Order_NA'
-        #         new_tax.append(name)
-        #     if i[0] == 'f':
-        #         if name=='unidentified' or name=='Incertae_sedis':
-        #             name='Family_NA'
-        #         new_tax.append(name)
-        #         
-        #     if i[0] == 'g':
-        #         genus = name
-        #         if name=='unidentified' or name=='Incertae_sedis':
-        #             name='Genus_NA'
-        #         new_tax.append(name)
-        #     if i[0] == 's':
-        #         species = name
-        #         #print line
-        #         if(species.find(genus,0,len(genus)) != -1 and species != genus):
-        #             species = species.split('_')[1]
-        #         new_tax.append(species)
-        #     
-        # 
-        #     
-        # taxonomy = ';'.join(new_tax)
-        # 
-        # print taxonomy
-        # taxout_fh.write(id+"\t"+taxonomy+"\n")
-        #     #out_fh.write('>'+id+"\n")
-        #  
-        #  
-        #  
+    tax_infile    = args.tax_infile
+    taxout_fh     = open(args.tax_outfile,'w')
+    ordered_names = "kingdom", "phylum", "class", "order", "family", "genus", "species"
+    old_taxonomy  = make_taxa_dict(tax_infile)
+    for tax_line in old_taxonomy.values():
+        remove_empty_from_end(tax_line)
+        print tax_line
  
 if __name__ == '__main__':
     THE_DEFAULT_BASE_OUTPUT = '.'
