@@ -1,4 +1,5 @@
 #! /opt/local/bin/python
+
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2011, Marine Biological Laboratory
@@ -11,6 +12,14 @@
 # Please read the COPYING file.
 # ver 2 2013 Jul 19 - convert taxonomy table
 # ver 3 2013 Jul 31 - convert taxonomy table, remove all trailing garbage, leave insertae_cedis
+# 1)
+# GU295056        k__Fungi;p__Ascomycota;c__Sordariomycetes;o__Incertae_sedis;f__Glomerellaceae;g__Glomerella;s__Colletotrichum_gloeosporioides
+# 
+# 2)
+# GU319887        k__Fungi;p__unidentified;c__unidentified;o__unidentified;f__unidentified;g__unidentified;s__fungal_sp_QP_2010
+# 
+# 3)
+# FJ820581        k__Fungi;p__Basidiomycota;c__Agaricomycetes;o__Thelephorales;f__Thelephoraceae;g__Thelephora;s__unculturedfungus
 
 import argparse
 
@@ -19,6 +28,53 @@ def uniq_array(arr):
    noDupes = []
    [noDupes.append(i) for i in arr if not noDupes.count(i)]
    return noDupes
+   
+def make_taxa_dict(tax_infile):
+    for line in open(tax_infile):
+        new_tax_line = {}
+        
+        line = line.strip()
+        # print line
+        if not line:
+            continue
+        tax_line    = line.split()
+        split_tax = tax_line[1].split(';')
+        id_tax    = tax_line[0]
+        
+        unique_split_tax = uniq_array(split_tax)
+        arr_size = len(unique_split_tax)
+        
+        
+        # domain         = 'Eukarya'
+        new_tax_line["kingdom_phylum"] = ""
+        new_tax_line["class"]          = ""
+        new_tax_line["order"]          = ""
+        new_tax_line["family"]         = ""
+        new_tax_line["genus"]          = ""
+        new_tax_line["species"]        = ""
+        for taxon in unique_split_tax:
+            # http://species.wikimedia.org/wiki/Fungi
+            # Phyla: Ascomycota - Basidiomycota - Blastocladiomycota - Chytridiomycota - Glomeromycota - Microsporidia - Neocallimastigomycota - Zygomycota - Fungi incertae sedis
+            # FJ820581        k__Fungi;p__Basidiomycota;c__Agaricomycetes;o__Thelephorales;f__Thelephoraceae;g__Thelephora;s__unculturedfungus
+            print "taxon = %s" % taxon
+            
+            if taxon.startswith("k__"):
+                new_tax_line["kingdom"] = "Fungi"
+            if taxon.startswith("p__"):
+                new_tax_line["kingdom_phylum"] = new_tax_line["kingdom"] + "_" + taxon.split("__")[1]                
+            if taxon.startswith("c__"):
+                new_tax_line["class"] = taxon.split("__")[1]
+            if taxon.startswith("o__"):
+                new_tax_line["order"] = taxon.split("__")[1]
+            if taxon.startswith("f__"):
+                new_tax_line["family"] = taxon.split("__")[1]
+            if taxon.startswith("g__"):
+                new_tax_line["genus"] = taxon.split("__")[1]
+            if taxon.startswith("s__"):
+                new_tax_line["species"] = taxon.split("__")[1]
+        new_taxonomy.append(new_tax_line)
+        close(tax_infile)
+        return new_taxonomy
 
 def process(args):
     tax_infile = args.tax_infile
@@ -33,9 +89,11 @@ def process(args):
         # print line
         if not line:
             continue
-        
-        id_tax    = line.split(',')
-        split_tax = id_tax[1].strip('"').split(';')
+        print "\n==========\n"
+        tax_line    = line.split()
+        print "tax_line = %s, tax_line[0] = %s" % (tax_line, tax_line[0])
+        split_tax = tax_line[1].split(';')
+        id_tax    = tax_line[0]
         print "id = %s, split_tax = %s" % (id_tax, split_tax)
         # print "id_tax = %s" % (id_tax)
         # print "\n==========\nsplit_tax = %s" % (split_tax)
@@ -56,34 +114,51 @@ def process(args):
         for taxon in unique_split_tax:
             # http://species.wikimedia.org/wiki/Fungi
             # Phyla: Ascomycota - Basidiomycota - Blastocladiomycota - Chytridiomycota - Glomeromycota - Microsporidia - Neocallimastigomycota - Zygomycota - Fungi incertae sedis
-            if taxon.endswith("mycota") or taxon == "Microsporidia":
-                new_tax_line["kingdom_phylum"] = "Fungi" + "_" + taxon
-            if taxon.endswith("mycetes"):
-                new_tax_line["class"] = taxon
-            if taxon.endswith("ales") and taxon.find(" ") < 0:
-                new_tax_line["order"] = taxon
-            if taxon.endswith("aceae"):
-                new_tax_line["family"] = taxon
-        if arr_size == int(2) or (arr_size == int(3) and unique_split_tax[2] == ''):
-            print "HERE: %s" % unique_split_tax
-            new_tax_line["kingdom_phylum"] = "Fungi"
-        if arr_size > 6:
-            new_tax_line["genus"] = unique_split_tax[6]
-        if arr_size > 7:
-            new_tax_line["species"] = unique_split_tax[7]
-        if (unique_split_tax[-1].find(" ") > 0 and split_tax[-1].split(" ")[1].islower()):
-            species_list = split_tax[-1].split(" ")
-            new_tax_line["genus"]   = species_list[0]
-            new_tax_line["species"] = species_list[1]
-            arr_size += 1
+            # FJ820581        k__Fungi;p__Basidiomycota;c__Agaricomycetes;o__Thelephorales;f__Thelephoraceae;g__Thelephora;s__unculturedfungus
+            print "taxon = %s" % taxon
+            
+            if taxon.startswith("k__"):
+                new_tax_line["kingdom"] = "Fungi"
+            if taxon.startswith("p__"):
+                new_tax_line["kingdom_phylum"] = new_tax_line["kingdom"] + "_" + taxon.split("__")[1]                
+            if taxon.startswith("c__"):
+                new_tax_line["class"] = taxon.split("__")[1]
+
+                # and taxon.find(" ") < 0
+            if taxon.startswith("o__"):
+                new_tax_line["order"] = taxon.split("__")[1]
+
+                # and taxon.endswith("aceae")
+            if taxon.startswith("f__"):
+                new_tax_line["family"] = taxon.split("__")[1]
+            if taxon.startswith("g__"):
+                new_tax_line["genus"] = taxon.split("__")[1]
+            if taxon.startswith("s__"):
+                new_tax_line["species"] = taxon.split("__")[1]
+
+                # if taxon.startswith("k__unidentified"):
+                #     break
+        # 
+        # if arr_size == int(2) or (arr_size == int(3) and unique_split_tax[2] == ''):
+        #     print "HERE: %s" % unique_split_tax
+        #     new_tax_line["kingdom_phylum"] = "Fungi"
+        # if arr_size > 6:
+        #     new_tax_line["genus"] = unique_split_tax[6]
+        # if arr_size > 7:
+        #     new_tax_line["species"] = unique_split_tax[7]
+        # if (unique_split_tax[-1].find(" ") > 0 and split_tax[-1].split(" ")[1].islower()):
+        #     species_list = split_tax[-1].split(" ")
+        #     new_tax_line["genus"]   = species_list[0]
+        #     new_tax_line["species"] = species_list[1]
+        #     arr_size += 1
             
         print "-----------"
         print new_tax_line.values()
-        print set(new_tax_line.values())
-        len_of_new_tax = len(set(new_tax_line.values()))
-        print "arr_size = %s, len_of_new_tax = %s" % (arr_size, len_of_new_tax)
-        if (int(arr_size) - int(len_of_new_tax) != 1):
-            print "ATTENTION"
+        # print set(new_tax_line.values())
+        # len_of_new_tax = len(set(new_tax_line.values()))
+        # print "arr_size = %s, len_of_new_tax = %s" % (arr_size, len_of_new_tax)
+        # if (int(arr_size) - int(len_of_new_tax) != 1):
+        #     print "ATTENTION"
         # else:
         #     print "URA"        
             # unique_split_tax = ['Eukarya', 'Fungi', 'Ascomycota', 'Pneumocystis carinii']
