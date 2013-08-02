@@ -88,6 +88,7 @@ def make_kingdom_phylum(tax_line, bad_value):
     return tax_line
     
 def separate_binomial_name(tax_line):
+    uncultured_species(tax_line["species"])
     if (tax_line["species"].find("_") > 0):
         species = tax_line["species"].split("_")
         genus   = tax_line["genus"]
@@ -103,23 +104,37 @@ def make_new_taxonomy(tax_line_w_k_ph, ordered_names):
             new_line += (";" + tax_line_w_k_ph[name])
     return new_line
         
+def change_id(tax_id):
+    return "its_" + tax_id
     
+def uncultured_species(species):
+    # unculturedAcaulosporaceae
+    try: 
+        species.index("uncultured")
+        print "species = %s" % species
+        try:        
+            a = species.index([A-Z])
+            print a
+            b = species[a:]
+            print b
+        except:
+            pass
+    except:
+        pass
+
 def process(args):
-    
     tax_infile    = args.tax_infile
     taxout_fh     = open(args.tax_outfile,'w')
     ordered_names = "kingdom", "kingdom_phylum", "phylum", "class", "order", "family", "genus", "species"
-    bad_value     = "Fungi", "unculturedfungus", "unidentified", "sp"
+    bad_value     = "Fungi", "unculturedfungus", "unidentified", "sp", "sp.", "unculturedsoil_fungus", "unidentified_sp.", "unculturedcompost_fungus"
     old_taxonomy  = make_taxa_dict(tax_infile)
     separated_species_taxonomy = {}
-    clean_taxonomy = {}
     for tax_id, tax_line in old_taxonomy.items():
         separated_species_taxonomy[tax_id] = separate_binomial_name(tax_line)
     taxonomy_with_wholes = remove_empty_from_end(ordered_names, separated_species_taxonomy, bad_value)
     for tax_id, tax_line in taxonomy_with_wholes.items():    
-        tax_line_w_k_ph = make_kingdom_phylum(tax_line, bad_value)
-        clean_taxonomy[tax_id] = make_new_taxonomy(tax_line_w_k_ph, ordered_names)
-        taxout_fh.write(clean_taxonomy[tax_id] + "\n")
+        tax_line_w_k_ph = make_kingdom_phylum(tax_line, bad_value)        
+        # taxout_fh.write(change_id(tax_id) + "\t"  + make_new_taxonomy(tax_line_w_k_ph, ordered_names) + "\t" + "1" + "\n")
 
 
  

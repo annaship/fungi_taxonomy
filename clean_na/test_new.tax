@@ -7,3 +7,7 @@ GU295056	k__Fungi;p__Ascomycota;c__Sordariomycetes;o__Incertae_sedis;f__Glomerel
 GU319887        k__Fungi;p__unidentified;c__unidentified;o__unidentified;f__unidentified;g__unidentified;s__fungal_sp_QP_2010
 FJ820581        k__Fungi;p__Basidiomycota;c__Agaricomycetes;o__Thelephorales;f__Thelephoraceae;g__Thelephora;s__unculturedfungus
 UDB002664        k__unidentified;p__unidentified;c__unidentified;o__unidentified;f__unidentified;g__unidentified;s__Fungi
+FR732066	k__Fungi;p__Glomeromycota;c__Glomeromycetes;o__Diversisporales;f__Acaulosporaceae;g__unidentified;s__unculturedAcaulospora
+GU055562	k__Fungi;p__Ascomycota;c__unidentified;o__unidentified;f__unidentified;g__unidentified;s__unculturedAcremonium
+EF635703	k__Fungi;p__Glomeromycota;c__Glomeromycetes;o__Diversisporales;f__Acaulosporaceae;g__unidentified;s__unculturedAcaulosporaceae
+GQ303289	k__Fungi;p__Ascomycota;c__Dothideomycetes;o__Incertae_sedis;f__Incertae_sedis;g__Pseudoramichloridium;s__
